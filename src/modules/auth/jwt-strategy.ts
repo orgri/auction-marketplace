@@ -6,10 +6,8 @@ import { UserService } from '../user/user.service';
 export const JWT_STRATEGY_JWT = 'jwt';
 export const JWT_STRATEGY_REFRESH = 'jwt-refresh';
 
-export interface JwtPayload {
+export interface IJwtPayload {
   email: string;
-  deviceId?: string;
-  refreshStatement?: string;
 }
 
 const getStrategyConstructorArgs = () => ({
@@ -24,8 +22,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, JWT_STRATEGY_JWT) {
     super(getStrategyConstructorArgs());
   }
 
-  async validate(email: string): Promise<any> {
+  async validate(payload: IJwtPayload): Promise<any> {
+    const { email } = payload;
     const user = await this.userService.getByEmail(email);
+
     if (!user) {
       throw new UnauthorizedException();
     }
