@@ -19,9 +19,9 @@ export class AuthService {
   ) {}
 
   private getJwtToken(user: User): Promise<string> {
-    const { email } = user;
+    const { email, id } = user;
 
-    return this.jwtService.signAsync({ email });
+    return this.jwtService.signAsync({ email, id });
   }
 
   async login(payload: AuthPayloadDto): Promise<AuthResponseDto> {

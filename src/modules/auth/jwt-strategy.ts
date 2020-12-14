@@ -8,6 +8,7 @@ export const JWT_STRATEGY_REFRESH = 'jwt-refresh';
 
 export interface IJwtPayload {
   email: string;
+  id: number;
 }
 
 const getStrategyConstructorArgs = () => ({
@@ -23,12 +24,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, JWT_STRATEGY_JWT) {
   }
 
   async validate(payload: IJwtPayload): Promise<any> {
-    const { email } = payload;
+    const { email, id } = payload;
     const user = await this.userService.getByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException();
     }
-    return { email };
+
+    return { email, id };
   }
 }
