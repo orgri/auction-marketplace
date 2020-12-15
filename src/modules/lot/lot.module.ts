@@ -2,7 +2,7 @@ import { LotService } from './lot.service';
 import { Module } from '@nestjs/common';
 import { LotController } from './lot.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Lot } from './lot.entity';
+import { Lot } from '../../models';
 import { TasksModule } from '../tasks/tasks.module';
 
 @Module({

@@ -6,7 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-import { Lot } from '../lot.entity';
+import { Lot } from '../../../models';
 
 export class LotUpdateDto {
   @IsOptional()
@@ -36,4 +36,8 @@ export class LotUpdateDto {
   @IsOptional()
   @IsDateString()
   endAt: string;
+
+  constructor(partial: Partial<LotUpdateDto>) {
+    Object.assign(this, partial);
+  }
 }

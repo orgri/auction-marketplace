@@ -9,9 +9,10 @@ import { ValidationException } from 'src/common/exceptions';
 import { isFirstDateLater } from 'src/common/validations';
 import { DeleteResult, Repository } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
-import { LotCreateDto } from './dto/lot-create.dto';
-import { LotUpdateDto } from './dto/lot-update.dto';
-import { Lot, LotStatus } from './lot.entity';
+import { LotCreateDto, LotUpdateDto } from './dto';
+import { Lot, LotStatus } from '../../models';
+
+const NOT_ALLOWED_STATUSES = [LotStatus.inProcess, LotStatus.closed];
 
 @Injectable()
 export class LotService {
@@ -24,18 +25,22 @@ export class LotService {
   ) {}
 
   async createOne(ownerId: number, payload: LotCreateDto): Promise<Lot> {
-    await this.validate(payload);
+    this.validate(payload);
 
-    payload['ownerId'] = ownerId;
-
-    try {
-      const lot = await this.repo.save(payload);
-      this.tasksService.scheduleChangeStatus(lot.startAt, lot.id, lot.ownerId);
-      return lot;
-    } catch (error) {
-      this.logger.error(error);
-      throw new ValidationException(['You are not able to create a lot']);
-    }
+    return this.repo
+      .save({ ...payload, ownerId })
+      .then((lot) => {
+        this.tasksService.scheduleChangeStatus(
+          lot.startAt,
+          lot.id,
+          lot.ownerId,
+        );
+        return lot;
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        throw new ValidationException(['You are not able to create a lot']);
+      });
   }
 
   async updateOne(
@@ -43,33 +48,41 @@ export class LotService {
     id: number,
     payload: LotUpdateDto,
   ): Promise<Lot> {
-    let lot = await this.validateLot(ownerId, id, payload);
+    const lot = await this.getByID(id);
+    this.validateLot(ownerId, id, lot);
+    this.repo.merge(lot, payload);
+    this.validate(lot);
 
-    try {
-      lot = await this.repo.save(lot);
-      this.tasksService.scheduleChangeStatus(lot.startAt, lot.id, lot.ownerId);
-      return lot;
-    } catch (error) {
-      this.logger.error(error);
-      throw new ValidationException(['You are not able to update a lot']);
-    }
+    return this.repo
+      .save(lot)
+      .then((updatedLot) => {
+        this.tasksService.scheduleChangeStatus(
+          updatedLot.startAt,
+          updatedLot.id,
+          updatedLot.ownerId,
+        );
+        return updatedLot;
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        throw new ValidationException(['You are not able to update a lot']);
+      });
   }
 
   async deleteOne(ownerId: number, id: number): Promise<DeleteResult> {
-    await this.validateLot(ownerId, id);
+    const lot = await this.getByID(id);
+    this.validateLot(ownerId, id, lot);
 
-    try {
-      return await this.repo.delete({ id });
-    } catch (error) {
+    return this.repo.delete({ id }).catch((error) => {
       this.logger.error(error);
       throw new ValidationException(['You are not able to delete a lot']);
-    }
+    });
   }
 
   async getAll(page: number, limit: number): Promise<Lot[]> {
     const skip = limit * (page - 1);
 
-    return await this.repo.find({
+    return this.repo.find({
       where: { status: LotStatus.inProcess },
       skip: skip,
       take: limit,
@@ -79,7 +92,7 @@ export class LotService {
   async getMy(ownerId: number, page: number, limit: number): Promise<Lot[]> {
     const skip = limit * (page - 1);
 
-    return await this.repo.find({
+    return this.repo.find({
       where: { ownerId },
       skip: skip,
       take: limit,
@@ -87,10 +100,10 @@ export class LotService {
   }
 
   async getByID(id: number): Promise<Lot> {
-    return await this.repo.findOne({ id });
+    return this.repo.findOne({ id });
   }
 
-  async validate(payload: LotCreateDto | LotUpdateDto): Promise<void> {
+  validate(payload: LotCreateDto | LotUpdateDto) {
     const { currentPrice, estimetedPrice, startAt, endAt } = payload;
 
     if (estimetedPrice < currentPrice) {
@@ -110,27 +123,19 @@ export class LotService {
     }
   }
 
-  async validateLot(ownerId: number, id: number, payload?: any): Promise<Lot> {
-    const lot = this.repo.merge(await this.getByID(id), payload);
-
+  validateLot(ownerId: number, id: number, lot: any) {
     if (!lot) {
-      throw new NotFoundException();
+      throw new NotFoundException(`Not found lot with id: ${id}`);
     }
 
     if (ownerId != lot.ownerId) {
-      throw new ForbiddenException();
+      throw new ForbiddenException('Forbidden resourse!');
     }
 
-    const notAllowedStatuses = [LotStatus.inProcess, LotStatus.closed];
-
-    if (notAllowedStatuses.includes(lot.status)) {
+    if (NOT_ALLOWED_STATUSES.includes(lot.status)) {
       throw new ValidationException([
         `You are not able to update/delete a lot in "${lot.status}" status`,
       ]);
     }
-
-    await this.validate(lot);
-
-    return lot;
   }
 }

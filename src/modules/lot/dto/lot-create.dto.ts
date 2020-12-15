@@ -6,7 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-import { Lot } from '../lot.entity';
+import { Lot } from '../../../models';
 
 export class LotCreateDto {
   @IsNotEmpty()
@@ -35,4 +35,8 @@ export class LotCreateDto {
   @IsNotEmpty()
   @IsDateString()
   endAt: string;
+
+  constructor(partial: Partial<LotCreateDto>) {
+    Object.assign(this, partial);
+  }
 }

@@ -18,4 +18,8 @@ export class LotQueryDto {
   })
   @IsPositive()
   limit = LIMIT_DEFAULT;
+
+  constructor(partial: Partial<LotQueryDto>) {
+    Object.assign(this, partial);
+  }
 }

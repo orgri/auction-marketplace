@@ -1,7 +1,8 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class ChangePasswordDto {
   @IsNotEmpty()
+  @IsEmail()
   email: string;
 
   @IsNotEmpty()
@@ -9,4 +10,8 @@ export class ChangePasswordDto {
 
   @IsNotEmpty()
   repeatPassword: string;
+
+  constructor(partial: Partial<ChangePasswordDto>) {
+    Object.assign(this, partial);
+  }
 }

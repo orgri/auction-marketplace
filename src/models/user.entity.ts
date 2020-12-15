@@ -1,6 +1,7 @@
 import { Entity, Column } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Base } from '../../common/base';
+import { Base } from '../common/base';
+import { Factory } from 'nestjs-seeder';
 
 @Entity({ name: 'users' })
 export class User extends Base {
@@ -11,21 +12,27 @@ export class User extends Base {
   static readonly FIRST_NAME_LENGTH = 30;
   static readonly LAST_NAME_LENGTH = 30;
 
+  @Factory((faker, record) => `user${record.idx}@example.com`)
   @Column({ unique: true, length: User.EMAIL_LENGTH })
   email: string;
 
+  @Factory((faker) => faker.phone.phoneNumber('+############'))
   @Column({ unique: true, length: User.PHONE_NUMBER_LENGTH })
   phone: string;
 
+  @Factory((faker) => faker.name.firstName())
   @Column({ length: User.FIRST_NAME_LENGTH })
   firstName: string;
 
+  @Factory((faker) => faker.name.lastName())
   @Column({ length: User.LAST_NAME_LENGTH })
   lastName: string;
 
+  @Factory('1990-1-30')
   @Column()
   birth: string;
 
+  @Factory((faker, record) => record.password)
   @Exclude()
   @Column({ length: User.PASSWORD_LENGTH })
   password: string;
