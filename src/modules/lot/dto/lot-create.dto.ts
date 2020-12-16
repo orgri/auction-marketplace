@@ -6,7 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-import { Lot } from '../../../models';
+import { Lot } from 'src/db/models';
 
 export class LotCreateDto {
   @IsNotEmpty()

@@ -1,5 +1,5 @@
 import { Entity, Column } from 'typeorm';
-import { Base } from '../common/base';
+import { Base } from './common/base';
 
 export enum LotStatus {
   pending = 'pending',

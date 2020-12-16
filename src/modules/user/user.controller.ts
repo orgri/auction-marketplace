@@ -6,7 +6,7 @@ import {
   ParseIntPipe,
   UseInterceptors,
 } from '@nestjs/common';
-import { User } from '../../models';
+import { User } from 'src/db/models';
 import { UserService } from './user.service';
 
 @Controller('users')

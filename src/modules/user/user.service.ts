@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../../models';
-import { UserCreateDto } from './dto';
+import { User } from 'src/db/models';
+import { UserCreateDto, UserUpdateDto } from './dto';
 
 @Injectable()
 export class UserService {
@@ -21,7 +21,13 @@ export class UserService {
     return this.repo.findOne({ id });
   }
 
-  async createOne(user: UserCreateDto): Promise<User> {
+  async createOne(payload: UserCreateDto): Promise<User> {
+    return this.repo.save(payload);
+  }
+
+  async updateOne(email: string, payload: UserUpdateDto): Promise<User> {
+    const user = await this.getByEmail(email);
+    this.repo.merge(user, payload);
     return this.repo.save(user);
   }
 

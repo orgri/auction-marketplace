@@ -3,7 +3,7 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CronJob } from 'cron';
 import { Repository } from 'typeorm';
-import { Lot, LotStatus } from '../../models';
+import { Lot, LotStatus } from 'src/db/models';
 
 @Injectable()
 export class TasksService {

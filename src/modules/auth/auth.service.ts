@@ -4,11 +4,11 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../../models';
+import { User } from 'src/db/models';
 import { UserService } from '../user/user.service';
 import { isAdult } from 'src/common/validations';
 import { ValidationException } from 'src/common/exceptions';
-import { UserCreateDto } from '../user/dto';
+import { UserCreateDto, UserUpdateDto } from '../user/dto';
 import { AuthPayloadDto, ChangePasswordDto, ForgotPasswordDto } from './dto';
 import * as bcrypt from 'bcrypt';
 
@@ -42,14 +42,10 @@ export class AuthService {
       ]);
     }
 
-    const password = await bcrypt.hash(payload.password, 10);
-
-    return this.userService
-      .createOne({ ...payload, password })
-      .catch((error) => {
-        this.logger.error(error);
-        throw new ValidationException(['You are not able to register']);
-      });
+    return this.userService.createOne(payload).catch((error) => {
+      this.logger.error(error);
+      throw new ValidationException(['You are not able to register']);
+    });
   }
 
   async login(payload: AuthPayloadDto): Promise<IAuthResponse> {
@@ -83,19 +79,28 @@ export class AuthService {
     };
   }
 
-  async changePassword(payload: ChangePasswordDto): Promise<IAuthResponse> {
-    const { email, password, repeatPassword } = payload;
+  async changePassword(
+    email: string,
+    payload: ChangePasswordDto,
+  ): Promise<IAuthResponse> {
+    const { password, repeatPassword } = payload;
 
     if (password !== repeatPassword) {
       throw new UnprocessableEntityException('Incorrect repeatPassword');
     }
 
-    const user = await this.userService.getByEmail(email);
-
-    return {
-      accessToken: await this.getJwtToken(user),
-      user: user,
-    };
+    return this.userService
+      .updateOne(email, new UserUpdateDto({ password }))
+      .then(async (updatedUser) => {
+        return {
+          accessToken: await this.getJwtToken(updatedUser),
+          user: updatedUser,
+        };
+      })
+      .catch((error) => {
+        this.logger.error(error);
+        throw new ValidationException(['You are not able to update user']);
+      });
   }
 
   async verifyToken(token: string): Promise<void> {

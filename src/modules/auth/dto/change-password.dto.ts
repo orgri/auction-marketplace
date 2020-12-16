@@ -1,10 +1,6 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
 export class ChangePasswordDto {
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
-
   @IsNotEmpty()
   password: string;
 

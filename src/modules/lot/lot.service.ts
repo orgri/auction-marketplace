@@ -10,7 +10,7 @@ import { isFirstDateLater } from 'src/common/validations';
 import { DeleteResult, Repository } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
 import { LotCreateDto, LotUpdateDto } from './dto';
-import { Lot, LotStatus } from '../../models';
+import { Lot, LotStatus } from 'src/db/models';
 
 const NOT_ALLOWED_STATUSES = [LotStatus.inProcess, LotStatus.closed];
 

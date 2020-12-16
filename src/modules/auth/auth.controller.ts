@@ -8,16 +8,17 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { User } from '../../models';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { UserCreateDto } from '../user/dto';
+import { UserCreateDto, UserDto } from '../user/dto';
 import {
   AuthPayloadDto,
   AuthResponseDto,
   ChangePasswordDto,
   ForgotPasswordDto,
 } from './dto';
+import { GetUser } from '../user/user.decorator';
+import { User } from 'src/db/models';
 
 @Controller('auth')
 export class AuthController {
@@ -25,8 +26,8 @@ export class AuthController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('signup')
-  async signup(@Body() payload: UserCreateDto): Promise<User> {
-    return this.authService.signup(payload).then((user) => new User(user));
+  async signup(@Body() payload: UserCreateDto): Promise<UserDto> {
+    return this.authService.signup(payload).then((user) => new UserDto(user));
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -51,10 +52,11 @@ export class AuthController {
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('change-password')
   async changePassword(
+    @GetUser() user: User,
     @Body() payload: ChangePasswordDto,
   ): Promise<AuthResponseDto> {
     return this.authService
-      .changePassword(payload)
+      .changePassword(user.email, payload)
       .then((user) => new AuthResponseDto(user));
   }
 }

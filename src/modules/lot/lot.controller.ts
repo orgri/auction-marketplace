@@ -13,7 +13,7 @@ import {
 import { DeleteResult } from 'typeorm';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetUser } from '../user/user.decorator';
-import { User, Lot } from '../../models';
+import { User, Lot } from 'src/db/models';
 import { LotService } from './lot.service';
 import { LotCreateDto, LotQueryDto, LotUpdateDto } from './dto';
 
