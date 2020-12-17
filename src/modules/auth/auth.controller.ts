@@ -18,7 +18,7 @@ import {
   ForgotPasswordDto,
 } from './dto';
 import { GetUser } from '../user/user.decorator';
-import { User } from 'src/db/models';
+import { User } from '../../db/models';
 
 @Controller('auth')
 export class AuthController {

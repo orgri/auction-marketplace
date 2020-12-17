@@ -5,12 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ValidationException } from 'src/common/exceptions';
-import { isFirstDateLater } from 'src/common/validations';
+import { ValidationException } from '../../common/exceptions';
+import { isFirstDateLater } from '../../common/validations';
 import { DeleteResult, Repository } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
 import { LotCreateDto, LotUpdateDto } from './dto';
-import { Lot, LotStatus } from 'src/db/models';
+import { Lot, LotStatus } from '../../db/models';
 
 const NOT_ALLOWED_STATUSES = [LotStatus.inProcess, LotStatus.closed];
 

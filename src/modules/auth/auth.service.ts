@@ -4,10 +4,10 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/db/models';
+import { User } from '../../db/models';
 import { UserService } from '../user/user.service';
-import { isAdult } from 'src/common/validations';
-import { ValidationException } from 'src/common/exceptions';
+import { isAdult } from '../../common/validations';
+import { ValidationException } from '../../common/exceptions';
 import { UserCreateDto, UserUpdateDto } from '../user/dto';
 import { AuthPayloadDto, ChangePasswordDto, ForgotPasswordDto } from './dto';
 import * as bcrypt from 'bcrypt';

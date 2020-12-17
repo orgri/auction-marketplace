@@ -6,7 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-import { Lot } from 'src/db/models';
+import { Lot } from '../../../db/models';
 
 export class LotUpdateDto {
   @IsOptional()

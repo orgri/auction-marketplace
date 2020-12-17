@@ -6,7 +6,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { User } from 'src/db/models';
+import { User } from '../../../db/models';
 
 export class UserUpdateDto {
   @MaxLength(User.EMAIL_LENGTH)
