@@ -22,7 +22,7 @@ export class UserService {
   }
 
   async createOne(payload: UserCreateDto): Promise<User> {
-    return this.repo.save(payload);
+    return this.repo.save(this.repo.create(payload));
   }
 
   async updateOne(email: string, payload: UserUpdateDto): Promise<User> {

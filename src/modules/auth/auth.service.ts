@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   Logger,
   UnprocessableEntityException,
@@ -86,7 +87,7 @@ export class AuthService {
     const { password, repeatPassword } = payload;
 
     if (password !== repeatPassword) {
-      throw new UnprocessableEntityException('Incorrect repeatPassword');
+      throw new BadRequestException('Incorrect repeatPassword');
     }
 
     return this.userService

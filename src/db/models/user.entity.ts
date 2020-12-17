@@ -1,4 +1,4 @@
-import { Entity, Column, BeforeInsert } from 'typeorm';
+import { Entity, Column, BeforeInsert, BeforeUpdate } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Base } from './common/base';
 import * as bcrypt from 'bcrypt';
@@ -37,6 +37,11 @@ export class User extends Base {
 
   @BeforeInsert()
   private async beforeInsert() {
+    if (this.password) await this.updatePassword(this.password);
+  }
+
+  @BeforeUpdate()
+  private async beforeUpdate() {
     if (this.password) await this.updatePassword(this.password);
   }
 }

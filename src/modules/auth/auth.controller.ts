@@ -3,6 +3,7 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Get,
+  HttpCode,
   Post,
   Query,
   UseGuards,
@@ -32,6 +33,7 @@ export class AuthController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('login')
+  @HttpCode(200)
   async login(@Body() payload: AuthPayloadDto): Promise<AuthResponseDto> {
     return this.authService
       .login(payload)
@@ -39,6 +41,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
+  @HttpCode(200)
   async forgotPassword(@Body() user: ForgotPasswordDto): Promise<any> {
     return this.authService.forgotPassword(user);
   }
@@ -51,6 +54,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('change-password')
+  @HttpCode(200)
   async changePassword(
     @GetUser() user: User,
     @Body() payload: ChangePasswordDto,
