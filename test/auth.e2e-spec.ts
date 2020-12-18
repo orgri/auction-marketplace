@@ -48,7 +48,7 @@ describe('AuthController (e2e)', () => {
       });
     });
 
-    it('should return validation error because of birth constraint', () => {
+    it('should return error because of birth constraint', () => {
       return request(app.getHttpServer())
         .post('/auth/signup')
         .send({ ...user, password, birth: '2020-01-01' })
@@ -59,7 +59,7 @@ describe('AuthController (e2e)', () => {
         });
     });
 
-    it('should return validation error because of missing required data', () => {
+    it('should return error because of missing required data', () => {
       return request(app.getHttpServer())
         .post('/auth/signup')
         .send({})
@@ -82,7 +82,7 @@ describe('AuthController (e2e)', () => {
         });
     });
 
-    it('should return validation error because of unique email constraint', () => {
+    it('should return error because of unique email constraint', () => {
       return request(app.getHttpServer())
         .post('/auth/signup')
         .send({ ...user, password })
@@ -93,7 +93,7 @@ describe('AuthController (e2e)', () => {
         });
     });
 
-    it('should return validation error because of unique phone constraint', () => {
+    it('should return error because of unique phone constraint', () => {
       return request(app.getHttpServer())
         .post('/auth/signup')
         .send({ ...user, password, email: 'differ_user@example.com' })
@@ -107,7 +107,7 @@ describe('AuthController (e2e)', () => {
 
   describe('/auth/login POST', () => {
     it('should not login with incorect password ', async () => {
-      return await request(app.getHttpServer())
+      return request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: user.email, password: 'incorrect' })
         .expect(422)
@@ -119,7 +119,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not login with incorect email ', async () => {
-      return await request(app.getHttpServer())
+      return request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'incorrect@email.com', password })
         .expect(422)
@@ -149,7 +149,7 @@ describe('AuthController (e2e)', () => {
 
   describe('/auth/forgot-password POST', () => {
     it('should return message for correct email', async () => {
-      return await request(app.getHttpServer())
+      return request(app.getHttpServer())
         .post('/auth/forgot-password')
         .send({ email: user.email })
         .expect(200)
@@ -159,7 +159,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should return message for incorrect email', async () => {
-      return await request(app.getHttpServer())
+      return request(app.getHttpServer())
         .post('/auth/forgot-password')
         .send({ email: 'incorrect@email.com' })
         .expect(200)
@@ -188,14 +188,14 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should login after change password', async () => {
-      return await request(app.getHttpServer())
+      return request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: user.email, password: newPassword })
         .expect(200);
     });
 
     it('should not permit change without auth token', async () => {
-      return await request(app.getHttpServer())
+      return request(app.getHttpServer())
         .post('/auth/change-password')
         .send({ email: user.email })
         .expect(401)
@@ -206,7 +206,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should return error about incorrect data', async () => {
-      return await request(app.getHttpServer())
+      return request(app.getHttpServer())
         .post('/auth/change-password')
         .set('Authorization', 'Bearer ' + accessToken)
         .send({ password: newPassword, repeatPassword: 'incorrect' })

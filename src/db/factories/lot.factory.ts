@@ -1,6 +1,6 @@
 import * as Faker from 'faker';
 import { define } from 'typeorm-seeding';
-import { Lot } from '../models';
+import { Lot, LotStatus } from '../models';
 
 define(Lot, (faker: typeof Faker) => {
   const lot = new Lot();
@@ -12,6 +12,11 @@ define(Lot, (faker: typeof Faker) => {
   lot.estimetedPrice = +faker.finance.amount(1001, 5000);
   lot.startAt = faker.date.future(0.05, new Date()).toJSON();
   lot.endAt = faker.date.future(0.5, new Date()).toJSON();
+  lot.status = faker.random.arrayElement([
+    LotStatus.pending,
+    LotStatus.inProcess,
+    LotStatus.closed,
+  ]);
 
   return lot;
 });
