@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetUser } from '../user/user.decorator';
 import { User, Lot } from '../../db/models';
 import { LotService } from './lot.service';
-import { LotCreateDto, LotQueryDto, LotUpdateDto } from './dto';
+import { LotCreateDto, QueryDto, LotUpdateDto } from './dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('lots')
@@ -23,14 +23,14 @@ export class LotController {
   constructor(private lotService: LotService) {}
 
   @Get('all')
-  async getAllLots(@Query() query: LotQueryDto): Promise<Lot[]> {
+  async getAllLots(@Query() query: QueryDto): Promise<Lot[]> {
     return this.lotService.getAll(query.page, query.limit);
   }
 
   @Get('my')
   async getMyLots(
     @GetUser() user: User,
-    @Query() query: LotQueryDto,
+    @Query() query: QueryDto,
   ): Promise<Lot[]> {
     return this.lotService.getMy(user.id, query.page, query.limit);
   }

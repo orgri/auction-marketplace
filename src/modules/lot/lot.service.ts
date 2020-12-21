@@ -29,13 +29,11 @@ export class LotService {
 
     return this.repo
       .save({ ...payload, ownerId })
-      .then((lot) => {
-        this.tasksService.scheduleChangeStatus(
-          lot.startAt,
-          lot.id,
-          lot.ownerId,
-        );
-        return lot;
+      .then((createdLot: Lot) => {
+        // TODO:
+        // change status to in_process by task(job) using queue
+        // change status to closed by task(job)
+        return createdLot;
       })
       .catch((error) => {
         this.logger.error(error);
@@ -55,12 +53,9 @@ export class LotService {
 
     return this.repo
       .save(lot)
-      .then((updatedLot) => {
-        this.tasksService.scheduleChangeStatus(
-          updatedLot.startAt,
-          updatedLot.id,
-          updatedLot.ownerId,
-        );
+      .then((updatedLot: Lot) => {
+        // TODO:
+        // delete scheduled tasks(jobs) and create new if dates were changed
         return updatedLot;
       })
       .catch((error) => {
@@ -90,6 +85,9 @@ export class LotService {
   }
 
   async getMy(ownerId: number, page: number, limit: number): Promise<Lot[]> {
+    // TODO:
+    // add to the list lots with my Bids
+
     const skip = limit * (page - 1);
 
     return this.repo.find({
@@ -101,6 +99,10 @@ export class LotService {
 
   async getByID(id: number): Promise<Lot> {
     return this.repo.findOne({ id });
+  }
+
+  async update(data: Lot): Promise<Lot> {
+    return this.repo.save(data);
   }
 
   validate(payload: LotCreateDto | LotUpdateDto) {
@@ -128,7 +130,7 @@ export class LotService {
       throw new NotFoundException(`Not found lot with id: ${id}`);
     }
 
-    if (ownerId != lot.ownerId) {
+    if (ownerId !== lot.ownerId) {
       throw new ForbiddenException('Forbidden resourse!');
     }
 

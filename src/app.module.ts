@@ -1,11 +1,14 @@
-import { LotModule } from './modules/lot/lot.module';
-import { DatabaseModule } from './modules/database/database.module';
-import { UserModule } from './modules/user/user.module';
 import { Module } from '@nestjs/common';
-import { AuthModule } from './modules/auth/auth.module';
+import {
+  AuthModule,
+  BidModule,
+  DatabaseModule,
+  LotModule,
+  UserModule,
+} from './modules';
 
 @Module({
-  imports: [DatabaseModule, UserModule, AuthModule, LotModule],
+  imports: [DatabaseModule, UserModule, AuthModule, LotModule, BidModule],
   controllers: [],
   providers: [],
 })

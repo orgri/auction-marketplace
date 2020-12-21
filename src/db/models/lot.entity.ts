@@ -1,5 +1,6 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { Base } from './common/base';
+import { decimalTransformer } from '../../../src/common/transformers';
 
 export enum LotStatus {
   pending = 'pending',
@@ -24,10 +25,20 @@ export class Lot extends Base {
   @Column({ length: Lot.DESCRIPTION_LENGTH, nullable: true })
   description: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: decimalTransformer,
+  })
   currentPrice: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: decimalTransformer,
+  })
   estimetedPrice: number;
 
   @Column({ default: 'USD' })

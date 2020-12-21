@@ -4,7 +4,7 @@ import { Transform } from 'class-transformer';
 const PAGE_DEFAULT = 1;
 const LIMIT_DEFAULT = 10;
 
-export class LotQueryDto {
+export class QueryDto {
   @IsOptional()
   @Transform((page) => parseInt(page, 10), {
     toClassOnly: true,
@@ -19,7 +19,7 @@ export class LotQueryDto {
   @IsPositive()
   limit = LIMIT_DEFAULT;
 
-  constructor(partial: Partial<LotQueryDto>) {
+  constructor(partial: Partial<QueryDto>) {
     Object.assign(this, partial);
   }
 }
