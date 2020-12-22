@@ -5,7 +5,7 @@ import { User } from '../models';
 define(User, (faker: typeof Faker, id: number) => {
   const user = new User();
 
-  user.email = `user${id}@example.com`;
+  user.email = `user${++id}@example.com`;
   user.phone = faker.phone.phoneNumber('+############');
   user.firstName = faker.name.firstName();
   user.lastName = faker.name.lastName();

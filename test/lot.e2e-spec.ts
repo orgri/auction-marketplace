@@ -27,7 +27,7 @@ const updateLot = {
   endAt: DateTime.local().plus({ weeks: 4 }).toJSON(),
 };
 
-const email = 'user0@example.com';
+const email = 'user1@example.com';
 const ownerId = 1;
 
 describe('LotController (e2e)', () => {
