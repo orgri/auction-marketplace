@@ -8,9 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ValidationException } from '../../common/exceptions';
 import { isFirstDateLater } from '../../common/validations';
 import { DeleteResult, Repository } from 'typeorm';
-import { TasksService } from '../tasks/tasks.service';
 import { LotCreateDto, LotUpdateDto } from './dto';
 import { Lot, LotStatus } from '../../db/models';
+import { QueueService } from '../tasks/queue.service';
+import { JobAction } from '../tasks/job-types';
 
 const NOT_ALLOWED_STATUSES = [LotStatus.inProcess, LotStatus.closed];
 
@@ -21,24 +22,30 @@ export class LotService {
   constructor(
     @InjectRepository(Lot)
     private readonly repo: Repository<Lot>,
-    private readonly tasksService: TasksService,
+    private readonly queueService: QueueService,
   ) {}
 
   async createOne(ownerId: number, payload: LotCreateDto): Promise<Lot> {
     this.validate(payload);
 
-    return this.repo
-      .save({ ...payload, ownerId })
-      .then((createdLot: Lot) => {
-        // TODO:
-        // change status to in_process by task(job) using queue
-        // change status to closed by task(job)
-        return createdLot;
-      })
-      .catch((error) => {
-        this.logger.error(error);
-        throw new ValidationException(['You are not able to create a lot']);
+    try {
+      const createdLot = await this.repo.save({ ownerId, ...payload });
+      // change status to in_process by job using queue
+      // change status to closed by job using queue
+      const delayChange = Date.parse(createdLot.startAt) - Date.now();
+      const delayClose = Date.parse(createdLot.endAt) - Date.now();
+      this.queueService.addJob(JobAction.changeLotStatus, createdLot, {
+        delay: delayChange,
       });
+      this.queueService.addJob(JobAction.closelot, createdLot, {
+        delay: delayClose,
+      });
+
+      return createdLot;
+    } catch (error) {
+      this.logger.error(error);
+      throw new ValidationException(['You are not able to create a lot']);
+    }
   }
 
   async updateOne(
@@ -48,30 +55,53 @@ export class LotService {
   ): Promise<Lot> {
     const lot = await this.getByID(id);
     this.validateLot(ownerId, id, lot);
-    this.repo.merge(lot, payload);
-    this.validate(lot);
+    const data = this.repo.create({ ...lot, ...payload });
+    this.validate(data);
 
-    return this.repo
-      .save(lot)
-      .then((updatedLot: Lot) => {
-        // TODO:
-        // delete scheduled tasks(jobs) and create new if dates were changed
-        return updatedLot;
-      })
-      .catch((error) => {
-        this.logger.error(error);
-        throw new ValidationException(['You are not able to update a lot']);
-      });
+    try {
+      const updatedLot = await this.repo.save(data);
+
+      if (payload.startAt) {
+        const delayStart = Date.parse(updatedLot.startAt) - Date.now();
+        this.queueService.addJob(JobAction.changeLotStatus, updatedLot, {
+          delay: delayStart,
+        });
+      }
+
+      if (payload.endAt) {
+        const delayEnd = Date.parse(updatedLot.endAt) - Date.now();
+        this.queueService.addJob(JobAction.closelot, updatedLot, {
+          delay: delayEnd,
+        });
+      }
+
+      return updatedLot;
+    } catch (error) {
+      this.logger.error(error);
+      throw new ValidationException(['You are not able to update a lot']);
+    }
   }
 
   async deleteOne(ownerId: number, id: number): Promise<DeleteResult> {
     const lot = await this.getByID(id);
     this.validateLot(ownerId, id, lot);
 
-    return this.repo.delete({ id }).catch((error) => {
+    try {
+      const result = await this.repo.delete({ id });
+
+      this.queueService.removeJob(
+        await this.queueService.getJobID(JobAction.changeLotStatus, lot),
+      );
+
+      this.queueService.removeJob(
+        await this.queueService.getJobID(JobAction.closelot, lot),
+      );
+
+      return result;
+    } catch (error) {
       this.logger.error(error);
       throw new ValidationException(['You are not able to delete a lot']);
-    });
+    }
   }
 
   async getAll(page: number, limit: number): Promise<Lot[]> {
@@ -101,11 +131,11 @@ export class LotService {
     return this.repo.findOne({ id });
   }
 
-  async update(data: Lot): Promise<Lot> {
-    return this.repo.save(data);
+  async update(data: any): Promise<Lot> {
+    return this.repo.save({ ...data });
   }
 
-  validate(payload: LotCreateDto | LotUpdateDto) {
+  validate(payload: any) {
     const { currentPrice, estimetedPrice, startAt, endAt } = payload;
 
     if (estimetedPrice < currentPrice) {

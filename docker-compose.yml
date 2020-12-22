@@ -9,3 +9,8 @@ services:
       POSTGRES_DB: marketplace
       POSTGRES_USER: marketplace
       POSTGRES_PASSWORD: marketplace
+    
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
