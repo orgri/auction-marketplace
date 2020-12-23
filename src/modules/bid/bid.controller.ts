@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Bid, User } from '../../../src/db/models';
+import { Bid, Lot, User } from '../../../src/db/models';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { QueryDto } from '../lot/dto';
 import { GetUser } from '../user/user.decorator';
@@ -26,7 +26,6 @@ export class BidController {
     @Param('id', ParseIntPipe) lotId: number,
     @Body() bid: BidCreateDto,
   ): Promise<Bid> {
-    console.log(user, lotId, bid);
     return this.bidService.createOne(user.id, lotId, bid);
   }
 
@@ -35,8 +34,7 @@ export class BidController {
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
     @Query() query: QueryDto,
-  ): Promise<any> {
-    console.log(id, query);
+  ): Promise<Lot> {
     return this.bidService.getAll(user.id, id, query.page, query.limit);
   }
 }

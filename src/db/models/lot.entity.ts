@@ -1,6 +1,7 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { Base } from './common/base';
 import { decimalTransformer } from '../../../src/common/transformers';
+import { Bid } from '.';
 
 export enum LotStatus {
   pending = 'pending',
@@ -52,4 +53,7 @@ export class Lot extends Base {
 
   @Column('simple-enum', { enum: LotStatus, default: LotStatus.pending })
   status: LotStatus;
+
+  @OneToMany(() => Bid, (bid) => bid.lot)
+  bids: Bid[];
 }

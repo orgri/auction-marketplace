@@ -8,8 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ValidationException } from '../../common/exceptions';
 import { isFirstDateLater } from '../../common/validations';
 import { DeleteResult, Repository } from 'typeorm';
-import { LotCreateDto, LotUpdateDto } from './dto';
-import { Lot, LotStatus } from '../../db/models';
+import { LotCreateDto, LotFilterDto, LotUpdateDto, QueryDto } from './dto';
+import { Bid, Lot, LotStatus } from '../../db/models';
 import { QueueService } from '../tasks/queue.service';
 import { JobAction } from '../tasks/job-types';
 
@@ -114,21 +114,63 @@ export class LotService {
     });
   }
 
-  async getMy(ownerId: number, page: number, limit: number): Promise<Lot[]> {
+  async getMy(
+    ownerId: number,
+    query: QueryDto,
+    body: LotFilterDto,
+  ): Promise<Lot[]> {
     // TODO:
-    // add to the list lots with my Bids
+    // + add to the list lots with my Bids
+    // add filters:
+    // + created (return only lots that user create for sale)
+    // + participation (return only lots that user won/try to win)
+    // + all (created + participated)
 
+    const { page, limit } = query;
+    const lotsOwnerId = body.isOwned ? ownerId : null;
+    const bidsOwnerId = body.isParticipated ? ownerId : null;
     const skip = limit * (page - 1);
 
-    return this.repo.find({
-      where: { ownerId },
-      skip: skip,
-      take: limit,
-    });
+    return await this.repo
+      .createQueryBuilder()
+      .select('lots')
+      .from(Lot, 'lots')
+      .where('lots.owner_id = :lotsOwnerId', { lotsOwnerId })
+      .orWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .distinct(true)
+          .select('bids.lot_id')
+          .from(Bid, 'bids')
+          .where('bids.owner_id = :bidsOwnerId', { bidsOwnerId })
+          .getQuery();
+        return 'lots.id IN ' + subQuery;
+      })
+      .groupBy('lots.id')
+      .orderBy('lots.status', 'ASC')
+      .skip(skip)
+      .take(limit)
+      .getMany();
   }
 
   async getByID(id: number): Promise<Lot> {
     return this.repo.findOne({ id });
+  }
+
+  async getOneLotWithBids(
+    id: number,
+    offset: number,
+    limit: number,
+  ): Promise<Lot> {
+    return this.repo
+      .createQueryBuilder('lots')
+      .leftJoinAndSelect('lots.bids', 'bids')
+      .where('lots.id = :id', { id })
+      .groupBy('lots.id, bids.id')
+      .orderBy('bids.proposed_price', 'DESC')
+      .offset(offset)
+      .limit(limit)
+      .getOne();
   }
 
   async update(data: any): Promise<Lot> {

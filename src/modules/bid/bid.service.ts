@@ -10,6 +10,8 @@ import { DeleteResult, Repository } from 'typeorm';
 import { Bid, Lot, LotStatus } from '../../../src/db/models';
 import { BidCreateDto } from './dto/bid-create.dto';
 import { LotService } from '../lot/lot.service';
+import { QueueService } from '../tasks/queue.service';
+import { JobAction } from '../tasks/job-types';
 
 const NOT_ALLOWED_STATUSES = [LotStatus.pending, LotStatus.closed];
 
@@ -21,6 +23,7 @@ export class BidService {
     @InjectRepository(Bid)
     private readonly repo: Repository<Bid>,
     private readonly lotService: LotService,
+    private readonly queueService: QueueService,
   ) {}
 
   async createOne(
@@ -34,7 +37,7 @@ export class BidService {
 
     // TODO:
     // websockets: sent this bid
-    // change status to closed if proposedPrice > lot.estimatedPrice
+    // + change status to closed if proposedPrice > lot.estimatedPrice
     // notify owner of lot
     // notify winner of lot
 
@@ -45,7 +48,17 @@ export class BidService {
         currentPrice: lot.currentPrice,
         ...payload,
       });
+
+      if (proposedPrice >= lot.estimetedPrice) {
+        lot.status = LotStatus.closed;
+      }
+
       await this.lotService.update({ ...lot, currentPrice: proposedPrice });
+
+      this.queueService.removeJob(
+        await this.queueService.getJobID(JobAction.closelot, lot),
+      );
+
       return bid;
     } catch (error) {
       this.logger.error(error);
@@ -78,8 +91,9 @@ export class BidService {
     lotId: number,
     page: number,
     limit: number,
-  ): Promise<any> {
-    const lot = await this.lotService.getByID(lotId);
+  ): Promise<Lot> {
+    const skip = limit * (page - 1);
+    const lot = await this.lotService.getOneLotWithBids(lotId, skip, limit);
 
     if (!lot) {
       throw new NotFoundException(`Not found lot with id: ${lotId}`);
@@ -89,27 +103,14 @@ export class BidService {
       throw new ForbiddenException('Forbidden resourse!');
     }
 
-    const skip = limit * (page - 1);
-    // Think about:
-    // Currently it is implemented by two queries to DB
-    // maybe better do it by one query with relation(join tables)?
-    const bids = await this.repo.find({
+    return lot;
+  }
+
+  async getMaxBid(lotId: number): Promise<Bid> {
+    return this.repo.findOne({
       where: { lotId },
-      skip: skip,
-      take: limit,
+      order: { proposedPrice: 'DESC' },
     });
-
-    const isUserHasBids = bids.find((bid) => bid.ownerId === ownerId);
-
-    if (
-      lot.ownerId !== ownerId &&
-      lot.status === LotStatus.closed &&
-      !isUserHasBids
-    ) {
-      throw new ForbiddenException('Forbidden resourse!');
-    }
-
-    return { lot, bids };
   }
 
   validateLot(lot: Lot, ownerId?: number, proposedPrice?: number) {
