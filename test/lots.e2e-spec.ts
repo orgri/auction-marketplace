@@ -78,16 +78,27 @@ describe('LotController (e2e)', () => {
       const res = await request(app.getHttpServer())
         .get('/lots/my')
         .set('Authorization', 'Bearer ' + accessToken)
-        .send({})
+        .send({ isOwned: true, isParticipated: false })
         .expect(200);
 
       res.body.forEach((lot: Lot) => expect(lot.ownerId).toBe(ownerId));
+    });
+
+    it('should return only participated lots', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/lots/my')
+        .set('Authorization', 'Bearer ' + accessToken)
+        .send({ isOwned: false, isParticipated: true })
+        .expect(200);
+
+      res.body.forEach((lot: Lot) => expect(lot.ownerId).not.toBe(ownerId));
     });
 
     it('should return correct number of lots', async () => {
       const res = await request(app.getHttpServer())
         .get('/lots/my?page=2&limit=10')
         .set('Authorization', 'Bearer ' + accessToken)
+        .send({ isOwned: true, isParticipated: false })
         .expect(200);
 
       expect(res.body).toHaveLength(5);
