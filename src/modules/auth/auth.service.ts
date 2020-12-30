@@ -7,6 +7,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../../db/models';
 import { UserService } from '../user/user.service';
+import { MailService } from '../mails/mail.service';
+import { MailTemplate } from '../mails/mail-types';
 import { isAdult } from '../../common/validations';
 import { ValidationException } from '../../common/exceptions';
 import { UserCreateDto, UserUpdateDto } from '../user/dto';
@@ -14,7 +16,6 @@ import { AuthPayloadDto, ChangePasswordDto, ForgotPasswordDto } from './dto';
 import * as bcrypt from 'bcrypt';
 
 const ADULT_YEARS = 21;
-const APP_URL = '127.0.0.1:3000';
 
 interface IAuthResponse {
   accessToken: string;
@@ -28,6 +29,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly mailService: MailService,
   ) {}
 
   private getJwtToken(user: User): Promise<string> {
@@ -43,10 +45,12 @@ export class AuthService {
       ]);
     }
 
-    return this.userService.createOne(payload).catch((error) => {
+    try {
+      return await this.userService.createOne(payload);
+    } catch (error) {
       this.logger.error(error);
       throw new ValidationException(['You are not able to register']);
-    });
+    }
   }
 
   async login(payload: AuthPayloadDto): Promise<IAuthResponse> {
@@ -72,7 +76,16 @@ export class AuthService {
 
     if (user) {
       const token = await this.getJwtToken(user);
-      const forgotLink = `${APP_URL}/auth/verify-change?token=${token}&email=${email}`;
+      const forgotLink = `/auth/verify-change?token=${token}&email=${email}`;
+
+      this.mailService.sendMail(MailTemplate.forgotPassword, {
+        to: email,
+        subject: 'Password reset request!',
+        context: {
+          name: user.firstName,
+          forgotLink,
+        },
+      });
     }
 
     return {
@@ -90,24 +103,28 @@ export class AuthService {
       throw new BadRequestException('Incorrect repeatPassword');
     }
 
-    return this.userService
-      .updateOne(email, new UserUpdateDto({ password }))
-      .then(async (updatedUser) => {
-        return {
-          accessToken: await this.getJwtToken(updatedUser),
-          user: updatedUser,
-        };
-      })
-      .catch((error) => {
-        this.logger.error(error);
-        throw new ValidationException(['You are not able to update user']);
-      });
+    try {
+      const updatedUser = await this.userService.updateOne(
+        email,
+        new UserUpdateDto({ password }),
+      );
+
+      return {
+        accessToken: await this.getJwtToken(updatedUser),
+        user: updatedUser,
+      };
+    } catch (error) {
+      this.logger.error(error);
+      throw new ValidationException(['You are not able to update user']);
+    }
   }
 
   async verifyToken(token: string): Promise<void> {
-    this.jwtService.verify(token).catch(() => {
+    try {
+      await this.jwtService.verify(token);
+    } catch (error) {
       throw new UnprocessableEntityException('Malformed token');
-    });
+    }
   }
 
   authError() {

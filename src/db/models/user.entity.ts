@@ -1,7 +1,8 @@
-import { Entity, Column, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { Entity, Column, BeforeInsert, BeforeUpdate, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Base } from './common/base';
 import * as bcrypt from 'bcrypt';
+import { Bid, Lot } from '.';
 
 @Entity({ name: 'users' })
 export class User extends Base {
@@ -28,8 +29,14 @@ export class User extends Base {
   birth: string;
 
   @Exclude()
-  @Column({ length: User.PASSWORD_LENGTH })
+  @Column({ length: User.PASSWORD_LENGTH, select: false })
   password: string;
+
+  @OneToMany(() => Lot, (lot) => lot.owner)
+  lots: Lot[];
+
+  @OneToMany(() => Bid, (bid) => bid.owner)
+  bids: Bid[];
 
   async updatePassword(password: string) {
     this.password = await bcrypt.hash(password, 10);

@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Bid, Lot, User } from '../../../src/db/models';
+import { Bid, Lot, User } from '../../db/models';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { QueryDto } from '../lot/dto';
 import { GetUser } from '../user/user.decorator';

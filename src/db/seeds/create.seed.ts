@@ -1,4 +1,4 @@
-import { Bid, Lot, LotStatus } from '../models';
+import { Bid, Lot, LotStatus, User } from '../models';
 import { Factory, Seeder } from 'typeorm-seeding';
 import {
   SEED_BIDS_PER_LOTS,
@@ -6,8 +6,12 @@ import {
   SEED_N_USERS,
 } from '../seed-constants';
 
-export default class CreateLots implements Seeder {
+export default class CreateSeeds implements Seeder {
   public async run(factory: Factory): Promise<void> {
+    for (let id = 0; id < SEED_N_USERS; id++) {
+      await factory(User)(id).create();
+    }
+
     for (let id = 1; id <= SEED_N_USERS; id++) {
       await factory(Lot)().createMany(SEED_LOTS_PER_STATUS, {
         ownerId: id,

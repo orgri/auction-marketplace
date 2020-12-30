@@ -5,9 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ValidationException } from '../../../src/common/exceptions';
+import { ValidationException } from '../../common/exceptions';
 import { DeleteResult, Repository } from 'typeorm';
-import { Bid, Lot, LotStatus } from '../../../src/db/models';
+import { Bid, Lot, LotStatus } from '../../db/models';
 import { BidCreateDto } from './dto/bid-create.dto';
 import { LotService } from '../lot/lot.service';
 import { QueueService } from '../tasks/queue.service';
@@ -38,8 +38,8 @@ export class BidService {
     // TODO:
     // websockets: sent this bid
     // + change status to closed if proposedPrice > lot.estimatedPrice
-    // notify owner of lot
-    // notify winner of lot
+    // + notify owner of lot
+    // + notify winner of lot
 
     try {
       const bid = await this.repo.save({
@@ -49,15 +49,14 @@ export class BidService {
         ...payload,
       });
 
+      await this.lotService.update({
+        ...lot,
+        currentPrice: proposedPrice,
+      });
+
       if (proposedPrice >= lot.estimetedPrice) {
-        lot.status = LotStatus.closed;
+        this.queueService.addJob(JobAction.closeLot, lot);
       }
-
-      await this.lotService.update({ ...lot, currentPrice: proposedPrice });
-
-      this.queueService.removeJob(
-        await this.queueService.getJobID(JobAction.closelot, lot),
-      );
 
       return bid;
     } catch (error) {
@@ -82,7 +81,7 @@ export class BidService {
       return await this.repo.delete({ id });
     } catch (error) {
       this.logger.error(error);
-      throw new ValidationException(['You are not able to create a bid']);
+      throw new ValidationException(['You are not able to delete a bid']);
     }
   }
 
@@ -106,10 +105,11 @@ export class BidService {
     return lot;
   }
 
-  async getMaxBid(lotId: number): Promise<Bid> {
+  async getWinnerBid(lotId: number): Promise<Bid> {
     return this.repo.findOne({
       where: { lotId },
       order: { proposedPrice: 'DESC' },
+      relations: ['owner', 'lot', 'lot.owner'],
     });
   }
 
@@ -134,6 +134,11 @@ export class BidService {
       throw new ValidationException([
         `You are not able to create bid with equal or less proposedPrice than currentPrice`,
       ]);
+    }
+
+    // to avoid situation when bid with estimetedPrice was created, but status is not changed to closed yet
+    if (lot.currentPrice >= lot.estimetedPrice) {
+      throw new ValidationException([`You are not able to create bid`]);
     }
   }
 }

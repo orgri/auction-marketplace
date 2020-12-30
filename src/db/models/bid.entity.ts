@@ -1,7 +1,7 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 import { Base } from './common/base';
-import { decimalTransformer } from '../../../src/common/transformers';
-import { Lot } from '.';
+import { decimalTransformer } from '../../common/transformers';
+import { Lot, User } from '.';
 
 @Entity({ name: 'bids' })
 export class Bid extends Base {
@@ -29,4 +29,7 @@ export class Bid extends Base {
 
   @ManyToOne(() => Lot, (lot) => lot.bids)
   lot: Lot;
+
+  @ManyToOne(() => User, (owner) => owner.bids)
+  owner: User;
 }

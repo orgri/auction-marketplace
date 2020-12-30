@@ -4,5 +4,5 @@ export enum QueueName {
 
 export enum JobAction {
   changeLotStatus = 'changeLotStatus',
-  closelot = 'closeLot',
+  closeLot = 'closeLot',
 }

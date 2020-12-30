@@ -14,7 +14,20 @@ export class UserService {
   ) {}
 
   async getByEmail(email: string): Promise<User> {
-    return this.repo.findOne({ email: email.toLowerCase() });
+    return this.repo.findOne(
+      { email },
+      {
+        select: [
+          'id',
+          'email',
+          'firstName',
+          'lastName',
+          'phone',
+          'birth',
+          'password',
+        ],
+      },
+    );
   }
 
   async getByID(id: number): Promise<User> {

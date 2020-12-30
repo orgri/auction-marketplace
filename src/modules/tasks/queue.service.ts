@@ -26,9 +26,8 @@ export class QueueService {
 
     await this.removeJob(jobId);
 
-    this.queue.add(name, data, {
+    await this.queue.add(name, data, {
       jobId,
-      attempts: 5,
       ...options,
     });
 
@@ -47,7 +46,7 @@ export class QueueService {
     const job = await this.queue.getJob(jobId);
 
     if (job) {
-      this.queue.removeJobs(jobId);
+      await this.queue.removeJobs(jobId);
       this.logger.warn(`job ${jobId} was REMOVED!`);
     }
   }

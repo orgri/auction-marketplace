@@ -37,7 +37,7 @@ export class LotService {
       this.queueService.addJob(JobAction.changeLotStatus, createdLot, {
         delay: delayChange,
       });
-      this.queueService.addJob(JobAction.closelot, createdLot, {
+      this.queueService.addJob(JobAction.closeLot, createdLot, {
         delay: delayClose,
       });
 
@@ -70,7 +70,7 @@ export class LotService {
 
       if (payload.endAt) {
         const delayEnd = Date.parse(updatedLot.endAt) - Date.now();
-        this.queueService.addJob(JobAction.closelot, updatedLot, {
+        this.queueService.addJob(JobAction.closeLot, updatedLot, {
           delay: delayEnd,
         });
       }
@@ -94,7 +94,7 @@ export class LotService {
       );
 
       this.queueService.removeJob(
-        await this.queueService.getJobID(JobAction.closelot, lot),
+        await this.queueService.getJobID(JobAction.closeLot, lot),
       );
 
       return result;
@@ -170,6 +170,19 @@ export class LotService {
       .orderBy('bids.proposed_price', 'DESC')
       .offset(offset)
       .limit(limit)
+      .getOne();
+  }
+
+  async getLotWinner(id: number): Promise<Lot> {
+    return this.repo
+      .createQueryBuilder('lots')
+      .leftJoinAndSelect('lots.owner', 'owner')
+      .leftJoinAndSelect('lots.bids', 'bids')
+      .leftJoinAndSelect('bids.owner', 'winner')
+      .where('lots.id = :id', { id })
+      .groupBy('lots.id, owner.id, bids.id, winner.id')
+      .orderBy('bids.proposed_price', 'DESC')
+      .limit(1)
       .getOne();
   }
 

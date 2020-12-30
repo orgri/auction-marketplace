@@ -1,7 +1,7 @@
-import { Entity, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
 import { Base } from './common/base';
-import { decimalTransformer } from '../../../src/common/transformers';
-import { Bid } from '.';
+import { decimalTransformer } from '../../common/transformers';
+import { Bid, User } from '.';
 
 export enum LotStatus {
   pending = 'pending',
@@ -53,6 +53,9 @@ export class Lot extends Base {
 
   @Column('simple-enum', { enum: LotStatus, default: LotStatus.pending })
   status: LotStatus;
+
+  @ManyToOne(() => User, (owner) => owner.lots)
+  owner: User;
 
   @OneToMany(() => Bid, (bid) => bid.lot)
   bids: Bid[];
