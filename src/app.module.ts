@@ -7,6 +7,7 @@ import {
   UserModule,
 } from './modules';
 import { MailModule } from './modules/mails/mail.module';
+import { OrderModule } from './modules/order/order.module';
 import { QueueModule } from './modules/tasks/queue.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { QueueModule } from './modules/tasks/queue.module';
     AuthModule,
     LotModule,
     BidModule,
+    OrderModule,
     QueueModule,
     MailModule,
   ],

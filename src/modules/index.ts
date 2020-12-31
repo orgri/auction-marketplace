@@ -3,4 +3,6 @@ export * from './user/user.module';
 export * from './database/database.module';
 export * from './lot/lot.module';
 export * from './bid/bid.module';
+export * from './order/order.module';
 export * from './tasks/tasks.module';
+export * from './tasks/queue.module';
