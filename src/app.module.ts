@@ -5,6 +5,7 @@ import {
   DatabaseModule,
   LotModule,
   UserModule,
+  WebsocketsModule,
 } from './modules';
 import { MailModule } from './modules/mails/mail.module';
 import { OrderModule } from './modules/order/order.module';
@@ -20,6 +21,7 @@ import { QueueModule } from './modules/tasks/queue.module';
     OrderModule,
     QueueModule,
     MailModule,
+    WebsocketsModule,
   ],
   controllers: [],
   providers: [],

@@ -6,3 +6,4 @@ export * from './bid/bid.module';
 export * from './order/order.module';
 export * from './tasks/tasks.module';
 export * from './tasks/queue.module';
+export * from './websockets/websockets.module';

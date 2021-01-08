@@ -12,6 +12,7 @@ import { BidCreateDto } from './dto/bid-create.dto';
 import { LotService } from '../lot/lot.service';
 import { QueueService } from '../tasks/queue.service';
 import { JobAction } from '../tasks/job-types';
+import { WebsocketsGateway } from '../websockets/websockets.gateway';
 
 const NOT_ALLOWED_STATUSES = [LotStatus.pending, LotStatus.closed];
 
@@ -24,6 +25,7 @@ export class BidService {
     private readonly repo: Repository<Bid>,
     private readonly lotService: LotService,
     private readonly queueService: QueueService,
+    private websockets: WebsocketsGateway,
   ) {}
 
   async createOne(
@@ -35,12 +37,6 @@ export class BidService {
     const lot = await this.lotService.getByID(lotId);
     this.validateLot(lot, ownerId, proposedPrice);
 
-    // TODO:
-    // websockets: sent this bid
-    // + change status to closed if proposedPrice > lot.estimatedPrice
-    // + notify owner of lot
-    // + notify winner of lot
-
     try {
       const bid = await this.repo.save({
         ownerId,
@@ -48,6 +44,8 @@ export class BidService {
         currentPrice: lot.currentPrice,
         ...payload,
       });
+
+      this.websockets.publishEventToRoom(`lot-${lotId}`, 'newBid', bid);
 
       await this.lotService.update({
         ...lot,

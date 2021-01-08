@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Minimal working example</title>
+</head>
+<body>
+    <form class="form-inline">
+      <input class="form-control mr-sm-2" type="search" placeholder="Enter room" aria-label="Search">
+      <button class="btn" type="submit">Join room</button>
+    </form>
+    <ul id="events"></ul>
+
+    <script src="../../node_modules/socket.io-client/dist/socket.io.js"></script>
+    <script>
+        const $events = document.getElementById('events');
+        const form = document.querySelector('form');
+
+        const newItem = (content) => {
+          const item = document.createElement('pre');
+          item.innerText = content;
+          return item;
+        };
+
+        const socket = io('http://127.0.0.1:3000');
+        let room = 'lot-1';
+        
+        socket.on('connect', function() {
+          $events.appendChild(newItem('Websockets Connected'));
+        });
+
+        socket.emit('join', room);
+        $events.appendChild(newItem('Joinedroom: ' + room));
+
+        socket.on('newBid', (data) => {
+          data = JSON.stringify(data);
+          $events.appendChild(newItem(data));
+        });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        room = document.querySelector('input').value;
+
+        if (room) {
+          socket.emit('join', room);
+          $events.appendChild(newItem('Joinedroom: ' + room));
+        }
+      });
+    </script>
+</body>
+</html>
