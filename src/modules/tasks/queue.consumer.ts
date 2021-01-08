@@ -24,7 +24,7 @@ export class AuctionFlowConsumer {
     });
 
     this.logger.warn(
-      `job ${job.id} scheduled to ${job.data.startAt} was EXECUTED!`,
+      `job ${job.id} scheduled to ${job.data.startAt} has been EXECUTED!`,
     );
   }
 
@@ -44,7 +44,7 @@ export class AuctionFlowConsumer {
 
     this.mailService.sendMail(template, {
       to: lot.owner.email,
-      subject: 'Auction for your lot was closed',
+      subject: 'Auction for your lot has been closed',
       context: {
         ownerName: lot.owner.firstName,
         winnerPrice: lot.currentPrice,
@@ -80,7 +80,55 @@ export class AuctionFlowConsumer {
     }
 
     this.logger.warn(
-      `job ${job.id} scheduled to ${job.data.endAt} was EXECUTED!`,
+      `job ${job.id} scheduled to ${job.data.endAt} has been EXECUTED!`,
     );
+  }
+
+  @Process({ name: JobAction.orderMail, concurrency: 10 })
+  async orderMail(job: Job) {
+    const { id, template } = job.data;
+    const lot = await this.lotService.getLotWinner(id);
+    const lotLink = `/lots/${lot.id}/bids`;
+
+    let to: string, subject: string, ownerName: string;
+
+    switch (template) {
+      case MailTemplate.newOrder:
+        to = lot.owner.email;
+        subject = 'You have a new order!';
+        ownerName = lot.owner.firstName;
+        break;
+
+      case MailTemplate.updatedOrder:
+        to = lot.owner.email;
+        subject = 'Order has been updated!';
+        ownerName = lot.owner.firstName;
+        break;
+
+      case MailTemplate.sentOrder:
+        to = lot.bids[0].owner.email;
+        subject = 'Order status has been changed!';
+        ownerName = lot.bids[0].owner.firstName;
+        break;
+
+      case MailTemplate.deliveredOrder:
+        to = `${lot.owner.email}, ${lot.bids[0].owner.email}`;
+        subject = 'The order has been delivered!';
+        break;
+    }
+
+    this.mailService.sendMail(template, {
+      to,
+      subject,
+      context: {
+        ownerName,
+        lotTitle: lot.title,
+        lotLink,
+      },
+    });
+
+    this.logger.warn(`sending order email to ${to} with template(${template})`);
+
+    this.logger.warn(`job ${job.id} has been EXECUTED!`);
   }
 }

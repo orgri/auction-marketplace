@@ -39,18 +39,18 @@ export class LotController {
   @Post('create')
   async createLot(
     @GetUser() user: User,
-    @Body() lot: LotCreateDto,
+    @Body() body: LotCreateDto,
   ): Promise<Lot> {
-    return this.lotService.createOne(user.id, lot);
+    return this.lotService.createOne(user.id, body);
   }
 
   @Patch(':id/update')
   async updateLot(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
-    @Body() lot: LotUpdateDto,
+    @Body() body: LotUpdateDto,
   ): Promise<Lot> {
-    return this.lotService.updateOne(user.id, id, lot);
+    return this.lotService.updateOne(user.id, id, body);
   }
 
   @Delete(':id/delete')

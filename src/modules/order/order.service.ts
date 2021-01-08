@@ -10,6 +10,9 @@ import { ValidationException } from 'src/common/exceptions';
 import { DeleteResult, Repository } from 'typeorm';
 import { Lot, LotStatus, Order, OrderStatus } from '../../db/models';
 import { LotService } from '../lot/lot.service';
+import { MailTemplate } from '../mails/mail-types';
+import { JobAction } from '../tasks/job-types';
+import { QueueService } from '../tasks/queue.service';
 import { OrderCreateDto, OrderChangeStatusDto, OrderUpdateDto } from './dto';
 
 @Injectable()
@@ -20,6 +23,7 @@ export class OrderService {
     @InjectRepository(Order)
     private readonly repo: Repository<Order>,
     private readonly lotService: LotService,
+    private readonly queueService: QueueService,
   ) {}
 
   async createOne(
@@ -27,26 +31,45 @@ export class OrderService {
     lotId: number,
     body: OrderCreateDto,
   ): Promise<Order> {
-    this.validate(
-      ownerId,
-      body.bidId,
-      await this.lotService.getLotWinner(lotId),
-    );
+    const lot = await this.lotService.getLotWinner(lotId);
+    this.validate(ownerId, body.bidId, lot);
 
     try {
-      return await this.repo.save({ ...body });
+      const order = await this.repo.save({ ...body });
+
+      this.queueService.addJob(JobAction.orderMail, {
+        id: lotId,
+        ownerId,
+        template: MailTemplate.newOrder,
+      });
+
+      return order;
     } catch (error) {
       this.logger.error(error);
       throw new ValidationException(['You are not able to create an order']);
     }
   }
 
-  async updateOne(ownerId: number, body: OrderUpdateDto): Promise<Order> {
+  async updateOne(
+    ownerId: number,
+    lotId: number,
+    body: OrderUpdateDto,
+  ): Promise<Order> {
     const order = await this.repo.findOne(body.id, { relations: ['bid'] });
     this.validateOrder(ownerId, order);
 
     try {
-      return await this.repo.save(this.repo.merge(order, { ...body }));
+      const updatedOrder = await this.repo.save(
+        this.repo.merge(order, { ...body }),
+      );
+
+      this.queueService.addJob(JobAction.orderMail, {
+        id: lotId,
+        ownerId,
+        template: MailTemplate.updatedOrder,
+      });
+
+      return updatedOrder;
     } catch (error) {
       this.logger.error(error);
       throw new ValidationException(['You are not able to update an order']);
@@ -78,7 +101,28 @@ export class OrderService {
     this.validateStatusChange(ownerId, body.status, order);
 
     try {
-      return await this.repo.save(this.repo.merge(order, { ...body }));
+      const changedOrder = await this.repo.save(
+        this.repo.merge(order, { ...body }),
+      );
+
+      let template: MailTemplate;
+
+      switch (changedOrder.status) {
+        case OrderStatus.sent:
+          template = MailTemplate.sentOrder;
+          break;
+        case OrderStatus.delivered:
+          template = MailTemplate.deliveredOrder;
+          break;
+      }
+
+      this.queueService.addJob(JobAction.orderMail, {
+        id: lotId,
+        ownerId,
+        template,
+      });
+
+      return changedOrder;
     } catch (error) {
       this.logger.error(error);
       throw new ValidationException([

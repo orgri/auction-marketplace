@@ -4,9 +4,14 @@ import { forwardRef, Module } from '@nestjs/common';
 import { Order } from '../../db/models';
 import { LotModule } from '..';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { QueueModule } from '../tasks/queue.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order]), forwardRef(() => LotModule)],
+  imports: [
+    TypeOrmModule.forFeature([Order]),
+    forwardRef(() => LotModule),
+    QueueModule,
+  ],
   controllers: [OrderController],
   providers: [OrderService],
 })

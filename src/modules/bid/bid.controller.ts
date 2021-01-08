@@ -24,9 +24,9 @@ export class BidController {
   async createBid(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) lotId: number,
-    @Body() bid: BidCreateDto,
+    @Body() body: BidCreateDto,
   ): Promise<Bid> {
-    return this.bidService.createOne(user.id, lotId, bid);
+    return this.bidService.createOne(user.id, lotId, body);
   }
 
   @Get('')

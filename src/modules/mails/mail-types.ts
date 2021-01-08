@@ -3,4 +3,8 @@ export enum MailTemplate {
   lotWinner = 'lotWinner',
   winnerClose = 'winnerClose',
   noWinnerClose = 'noWinnerClose',
+  newOrder = 'newOrder',
+  updatedOrder = 'updatedOrder',
+  sentOrder = 'sentOrder',
+  deliveredOrder = 'deliveredOrder',
 }

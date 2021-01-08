@@ -41,9 +41,12 @@ export class OrderController {
   @Patch('update')
   async updateOrder(
     @GetUser() user: User,
+    @Param('id', ParseIntPipe) lotId: number,
     @Body() body: OrderUpdateDto,
   ): Promise<OrderDto> {
-    return new OrderDto(await this.orderService.updateOne(user.id, body));
+    return new OrderDto(
+      await this.orderService.updateOne(user.id, lotId, body),
+    );
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
