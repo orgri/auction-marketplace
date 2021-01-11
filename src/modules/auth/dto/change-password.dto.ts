@@ -1,7 +1,9 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, MinLength } from 'class-validator';
+import { User } from '../../../db/models';
 
 export class ChangePasswordDto {
   @IsNotEmpty()
+  @MinLength(User.MIN_PASSWORD_LENGTH)
   password: string;
 
   @IsNotEmpty()

@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ValidationException } from '../../common/exceptions';
+import { isAdult } from '../../common/validations';
 import { Repository } from 'typeorm';
 import { User } from '../../db/models';
 import { UserCreateDto, UserUpdateDto } from './dto';
+
+const ADULT_YEARS = 21;
 
 @Injectable()
 export class UserService {
@@ -34,14 +38,32 @@ export class UserService {
     return this.repo.findOne({ id });
   }
 
-  async createOne(payload: UserCreateDto): Promise<User> {
-    return this.repo.save(this.repo.create(payload));
+  async createOne(body: UserCreateDto): Promise<User> {
+    return this.repo.save(this.repo.create(body));
   }
 
-  async updateOne(email: string, payload: UserUpdateDto): Promise<User> {
+  async updatePassword(email: string, password: string): Promise<User> {
     const user = await this.getByEmail(email);
-    this.repo.merge(user, payload);
+    this.repo.merge(user, { password });
     return this.repo.save(user);
+  }
+
+  async updateById(id: number, body: UserUpdateDto): Promise<User> {
+    const user = await this.getByID(id);
+    this.repo.merge(user, body);
+
+    if (!isAdult(body.birth, ADULT_YEARS)) {
+      throw new ValidationException([
+        `You are must be ${ADULT_YEARS} years old`,
+      ]);
+    }
+
+    try {
+      return await this.repo.save(user);
+    } catch (error) {
+      this.logger.error(error);
+      throw new ValidationException(['You are not able to update user']);
+    }
   }
 
   async getAll(): Promise<User[]> {

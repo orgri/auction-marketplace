@@ -6,7 +6,7 @@ define(User, (faker: typeof Faker, id: number) => {
   const user = new User();
 
   user.email = `user${++id}@example.com`;
-  user.phone = faker.phone.phoneNumber('+############');
+  user.phone = faker.phone.phoneNumber('+38095#######');
   user.firstName = faker.name.firstName();
   user.lastName = faker.name.lastName();
   user.birth = '1990-1-30';

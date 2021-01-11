@@ -11,7 +11,7 @@ import { MailService } from '../mails/mail.service';
 import { MailTemplate } from '../mails/mail-types';
 import { isAdult } from '../../common/validations';
 import { ValidationException } from '../../common/exceptions';
-import { UserCreateDto, UserUpdateDto } from '../user/dto';
+import { UserCreateDto } from '../user/dto';
 import { AuthPayloadDto, ChangePasswordDto, ForgotPasswordDto } from './dto';
 import * as bcrypt from 'bcrypt';
 
@@ -104,9 +104,9 @@ export class AuthService {
     }
 
     try {
-      const updatedUser = await this.userService.updateOne(
+      const updatedUser = await this.userService.updatePassword(
         email,
-        new UserUpdateDto({ password }),
+        password,
       );
 
       return {

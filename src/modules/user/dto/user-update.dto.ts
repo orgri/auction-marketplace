@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsPhoneNumber,
   MaxLength,
-  MinLength,
 } from 'class-validator';
 import { User } from '../../../db/models';
 
@@ -13,11 +12,6 @@ export class UserUpdateDto {
   @IsOptional()
   @IsEmail()
   email: string;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @MinLength(User.MIN_PASSWORD_LENGTH)
-  password: string;
 
   @IsOptional()
   @IsNotEmpty()
