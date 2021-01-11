@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Bid } from 'src/db/models';
+import { Bid } from '../../db/models';
 import { Logger } from '@nestjs/common';
 
 @WebSocketGateway()

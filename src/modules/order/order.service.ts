@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ValidationException } from 'src/common/exceptions';
+import { ValidationException } from '../../common/exceptions';
 import { DeleteResult, Repository } from 'typeorm';
 import { Lot, LotStatus, Order, OrderStatus } from '../../db/models';
 import { LotService } from '../lot/lot.service';
