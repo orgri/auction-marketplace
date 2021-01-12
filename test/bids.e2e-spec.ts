@@ -1,10 +1,9 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as request from 'supertest';
 import { Not, Repository } from 'typeorm';
 import { Bid, Lot, LotStatus } from '../src/db/models';
+import { createTestApp } from './utils/test.app';
 
 const email = 'user1@example.com';
 const ownerId = 1;
@@ -16,14 +15,7 @@ describe('LotController (e2e)', () => {
   let lot: Lot;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture
-      .createNestApplication()
-      .useGlobalPipes(new ValidationPipe({ whitelist: true }));
-    await app.init();
+    app = await createTestApp();
 
     lotRepo = app.get('LotRepository');
     accessToken = app.get<JwtService>(JwtService).sign({ email, id: ownerId });

@@ -1,11 +1,10 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as request from 'supertest';
 import { Not, Repository } from 'typeorm';
 import { Lot, LotStatus } from '../src/db/models';
 import { DateTime } from 'luxon';
+import { createTestApp } from './utils/test.app';
 
 const testLot = {
   title: 'E2E Test title',
@@ -36,14 +35,7 @@ describe('LotController (e2e)', () => {
   let lotRepo: Repository<Lot>;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture
-      .createNestApplication()
-      .useGlobalPipes(new ValidationPipe({ whitelist: true }));
-    await app.init();
+    app = await createTestApp();
 
     lotRepo = app.get('LotRepository');
     accessToken = app.get<JwtService>(JwtService).sign({ email, id: ownerId });
@@ -65,11 +57,11 @@ describe('LotController (e2e)', () => {
 
     it('should return correct number of lots', async () => {
       const res = await request(app.getHttpServer())
-        .get('/lots/all?page=7&limit=8')
+        .get('/lots/all?page=3&limit=8')
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      expect(res.body).toHaveLength(2);
+      expect(res.body).toHaveLength(8);
     });
   });
 
@@ -115,8 +107,6 @@ describe('LotController (e2e)', () => {
 
       expect(res.body).toEqual({
         ...testLot,
-        // currentPrice: testLot.currentPrice.toString(),
-        // estimetedPrice: testLot.estimetedPrice.toString(),
         ownerId,
         currency: 'USD',
         status: LotStatus.pending,

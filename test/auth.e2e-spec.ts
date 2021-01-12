@@ -1,8 +1,9 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as request from 'supertest';
+import { User } from '../src/db/models';
+import { Repository } from 'typeorm';
+import { createTestApp } from './utils/test.app';
 
 const user = {
   firstName: 'E2e Test',
@@ -17,20 +18,17 @@ const newPassword = 'e2epassword';
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
+  let userRepo: Repository<User>;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    app = await createTestApp();
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-    await app.init();
-
+    userRepo = app.get('UserRepository');
     accessToken = app.get<JwtService>(JwtService).sign({ email: user.email });
   });
 
   afterAll(async () => {
+    await userRepo.delete({ email: user.email });
     await app.close();
   });
 

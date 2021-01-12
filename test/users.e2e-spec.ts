@@ -1,10 +1,9 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as request from 'supertest';
 import { Repository } from 'typeorm';
 import { User } from '../src/db/models';
+import { createTestApp } from './utils/test.app';
 
 const email = 'user10@example.com';
 const id = 10;
@@ -24,14 +23,7 @@ describe('UserController (e2e)', () => {
   let user: User;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture
-      .createNestApplication()
-      .useGlobalPipes(new ValidationPipe({ whitelist: true }));
-    await app.init();
+    app = await createTestApp();
 
     userRepo = app.get('UserRepository');
     accessToken = app.get<JwtService>(JwtService).sign({ email, id });

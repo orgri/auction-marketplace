@@ -1,10 +1,9 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
+import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as request from 'supertest';
 import { Repository } from 'typeorm';
 import { Bid, Lot, LotStatus, Order, OrderStatus } from '../src/db/models';
+import { createTestApp } from './utils/test.app';
 
 const orderBody = {
   arrivalLocation: 'E2E street',
@@ -26,33 +25,28 @@ describe('OrderController (e2e)', () => {
   let winnerBid: Bid;
   let orderId: number;
 
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture
-      .createNestApplication()
-      .useGlobalPipes(new ValidationPipe({ whitelist: true }));
-    await app.init();
-
-    lotRepo = app.get('LotRepository');
-    orderRepo = app.get('OrderRepository');
-
-    lot = await lotRepo
+  const getWinner = async (status: LotStatus, repo: Repository<Lot>) => {
+    return repo
       .createQueryBuilder('lots')
       .leftJoinAndSelect('lots.owner', 'owner')
       .leftJoinAndSelect('lots.bids', 'bids')
       .leftJoinAndSelect('bids.owner', 'winner')
       .where('lots.status = :status AND bids.id IS NOT NULL', {
-        status: LotStatus.closed,
+        status,
       })
       .groupBy('lots.id, owner.id, bids.id, winner.id')
       .orderBy('bids.proposed_price', 'DESC')
       .getOne();
+  };
 
+  beforeAll(async () => {
+    app = await createTestApp();
+
+    lotRepo = app.get('LotRepository');
+    orderRepo = app.get('OrderRepository');
+
+    lot = await getWinner(LotStatus.closed, lotRepo);
     winnerBid = lot.bids[0];
-
     accessToken = app
       .get<JwtService>(JwtService)
       .sign({ email: lot.bids[0].owner.email, id: lot.bids[0].owner.id });
@@ -128,7 +122,7 @@ describe('OrderController (e2e)', () => {
     it('should not create Order if user not winner', async () => {
       const notWinnerAccessToken = app
         .get<JwtService>(JwtService)
-        .sign({ email: lot.bids[1].owner.email, id: lot.bids[1].owner.id });
+        .sign({ email: lot.owner.email, id: lot.owner.id });
 
       return request(app.getHttpServer())
         .post(`/lots/${lot.id}/order/create`)
@@ -143,24 +137,15 @@ describe('OrderController (e2e)', () => {
     });
 
     it('should not create Order for lot of incorrect status', async () => {
-      const wrongLot = await lotRepo
-        .createQueryBuilder('lots')
-        .leftJoinAndSelect('lots.owner', 'owner')
-        .leftJoinAndSelect('lots.bids', 'bids')
-        .where(
-          'lots.status = :status AND bids.id IS NOT NULL AND bids.owner_id = :ownerId',
-          {
-            status: LotStatus.inProcess,
-            ownerId: winnerBid.ownerId,
-          },
-        )
-        .groupBy('lots.id, owner.id, bids.id')
-        .orderBy('bids.proposed_price', 'DESC')
-        .getOne();
+      const wrongLot = await getWinner(LotStatus.inProcess, lotRepo);
+      const winnerAccessToken = app.get<JwtService>(JwtService).sign({
+        email: wrongLot.bids[0].owner.email,
+        id: wrongLot.bids[0].owner.id,
+      });
 
       return request(app.getHttpServer())
         .post(`/lots/${wrongLot.id}/order/create`)
-        .set('Authorization', 'Bearer ' + accessToken)
+        .set('Authorization', 'Bearer ' + winnerAccessToken)
         .send({ ...orderBody, bidId: wrongLot.bids[0].id })
         .expect(422)
         .expect({
@@ -257,7 +242,7 @@ describe('OrderController (e2e)', () => {
     it('should not update Order if user not owner of order', async () => {
       const notWinnerAccessToken = app
         .get<JwtService>(JwtService)
-        .sign({ email: lot.bids[1].owner.email, id: lot.bids[1].owner.id });
+        .sign({ email: lot.owner.email, id: lot.owner.id });
 
       return request(app.getHttpServer())
         .patch(`/lots/${lot.id}/order/update`)
