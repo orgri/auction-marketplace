@@ -54,8 +54,9 @@ describe('AuthController (e2e)', () => {
         .send({ ...user, password, birth: '2020-01-01' })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['You are must be 21 years old'],
+          statusCode: 422,
+          message: ['You are must be 21 years old'],
+          error: 'Validation Error',
         });
     });
 
@@ -88,8 +89,9 @@ describe('AuthController (e2e)', () => {
         .send({ ...user, password })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['You are not able to register'],
+          statusCode: 422,
+          message: ['You are not able to register'],
+          error: 'Validation Error',
         });
     });
 
@@ -99,8 +101,9 @@ describe('AuthController (e2e)', () => {
         .send({ ...user, password, email: 'differ_user@example.com' })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['You are not able to register'],
+          statusCode: 422,
+          message: ['You are not able to register'],
+          error: 'Validation Error',
         });
     });
   });

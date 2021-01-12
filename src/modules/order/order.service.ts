@@ -169,7 +169,7 @@ export class OrderService {
 
     if (lot.status !== LotStatus.closed) {
       throw new ValidationException([
-        `Posssible to create order only in "${LotStatus.closed}" status`,
+        `Posssible to create order only for lot in "${LotStatus.closed}" status`,
       ]);
     }
   }

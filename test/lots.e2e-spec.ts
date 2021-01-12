@@ -158,8 +158,9 @@ describe('LotController (e2e)', () => {
         .send({ ...testLot, currentPrice })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['estimetedPrice must be grater than currentPrice'],
+          statusCode: 422,
+          message: ['estimetedPrice must be grater than currentPrice'],
+          error: 'Validation Error',
         });
     });
 
@@ -172,8 +173,9 @@ describe('LotController (e2e)', () => {
         .send({ ...testLot, startAt })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['startAt must be later than current time'],
+          statusCode: 422,
+          message: ['startAt must be later than current time'],
+          error: 'Validation Error',
         });
     });
 
@@ -186,8 +188,9 @@ describe('LotController (e2e)', () => {
         .send({ ...testLot, endAt })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['endAt must be later than startAt'],
+          statusCode: 422,
+          message: ['endAt must be later than startAt'],
+          error: 'Validation Error',
         });
     });
   });
@@ -226,8 +229,9 @@ describe('LotController (e2e)', () => {
         .send({ ...updateLot, currentPrice })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['estimetedPrice must be grater than currentPrice'],
+          statusCode: 422,
+          message: ['estimetedPrice must be grater than currentPrice'],
+          error: 'Validation Error',
         });
     });
 
@@ -240,8 +244,9 @@ describe('LotController (e2e)', () => {
         .send({ ...updateLot, startAt })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['startAt must be later than current time'],
+          statusCode: 422,
+          message: ['startAt must be later than current time'],
+          error: 'Validation Error',
         });
     });
 
@@ -254,8 +259,9 @@ describe('LotController (e2e)', () => {
         .send({ ...updateLot, endAt })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['endAt must be later than startAt'],
+          statusCode: 422,
+          message: ['endAt must be later than startAt'],
+          error: 'Validation Error',
         });
     });
 
@@ -271,10 +277,11 @@ describe('LotController (e2e)', () => {
         .send(updateLot)
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: [
+          statusCode: 422,
+          message: [
             `You are not able to update/delete a lot in "${LotStatus.inProcess}" status`,
           ],
+          error: 'Validation Error',
         });
     });
 

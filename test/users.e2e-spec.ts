@@ -81,8 +81,9 @@ describe('UserController (e2e)', () => {
         .send({ ...changedUser, birth: '2020-01-01' })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['You are must be 21 years old'],
+          statusCode: 422,
+          message: ['You are must be 21 years old'],
+          error: 'Validation Error',
         });
     });
 
@@ -95,8 +96,9 @@ describe('UserController (e2e)', () => {
         .send({ ...changedUser, phone })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['You are not able to update user'],
+          statusCode: 422,
+          message: ['You are not able to update user'],
+          error: 'Validation Error',
         });
     });
 
@@ -109,8 +111,9 @@ describe('UserController (e2e)', () => {
         .send({ ...changedUser, email })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: ['You are not able to update user'],
+          statusCode: 422,
+          message: ['You are not able to update user'],
+          error: 'Validation Error',
         });
     });
   });

@@ -99,10 +99,11 @@ describe('LotController (e2e)', () => {
         .send({ proposedPrice })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: [
+          statusCode: 422,
+          message: [
             'You are not able to create bid with equal or less proposedPrice than currentPrice',
           ],
+          error: 'Validation Error',
         });
     });
 
@@ -120,10 +121,11 @@ describe('LotController (e2e)', () => {
         .send({ proposedPrice })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: [
+          statusCode: 422,
+          message: [
             'You are not able to create/delete bid for lot in "pending" status',
           ],
+          error: 'Validation Error',
         });
     });
 
@@ -151,7 +153,7 @@ describe('LotController (e2e)', () => {
       });
     });
 
-    it('should change lot currentPrice and close lot', async () => {
+    it('should change lot currentPrice', async () => {
       const proposedPrice = lot.estimetedPrice;
 
       await request(app.getHttpServer())
@@ -160,14 +162,15 @@ describe('LotController (e2e)', () => {
         .send({ proposedPrice })
         .expect(201);
 
-      const { currentPrice, status } = await lotRepo.findOne(lot.id);
+      const { currentPrice } = await lotRepo.findOne(lot.id);
 
       expect(currentPrice).toBe(proposedPrice);
-      expect(status).toBe(LotStatus.closed);
     });
 
     it('should not create Bid for closed lot', async () => {
       const proposedPrice = lot.currentPrice + 100;
+
+      await lotRepo.save({ id: lot.id, status: LotStatus.closed });
 
       return request(app.getHttpServer())
         .post(`/lots/${lot.id}/bids/create`)
@@ -175,10 +178,11 @@ describe('LotController (e2e)', () => {
         .send({ proposedPrice })
         .expect(422)
         .expect({
-          name: 'Validation Error',
-          errors: [
+          statusCode: 422,
+          message: [
             'You are not able to create/delete bid for lot in "closed" status',
           ],
+          error: 'Validation Error',
         });
     });
   });
