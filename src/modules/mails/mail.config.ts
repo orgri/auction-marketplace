@@ -1,27 +1,24 @@
-import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import { ReadConfig } from '../../common/read-config';
 
 const templatesDir = path.resolve(__dirname, 'templates');
-const env = dotenv.parse(fs.readFileSync('.env'));
-const configService = new ConfigService(env);
+const config = new ReadConfig();
 
-module.exports = {
+export const MailConfig = {
   transport: {
-    host: configService.get('MAIL_HOST'),
-    port: configService.get('MAIL_PORT'),
-    secure: configService.get<boolean>('MAIL_SECURE', false),
+    host: config.getString('MAIL_HOST'),
+    port: config.getString('MAIL_PORT'),
+    secure: config.getBoolean('MAIL_SECURE'),
     // tls: { ciphers: 'SSLv3' }, // gmail
     auth: {
-      user: configService.get('MAIL_USER'),
-      pass: configService.get('MAIL_PASS'),
+      user: config.getString('MAIL_USER'),
+      pass: config.getString('MAIL_PASS'),
     },
-    logger: true,
+    logger: config.getBoolean('MAIL_LOGGER'),
   },
   defaults: {
-    from: `"Auction Team" <${configService.get('MAIL_FROM')}>`,
+    from: `"Auction Team" <${config.getString('MAIL_FROM')}>`,
   },
   template: {
     dir: templatesDir,
