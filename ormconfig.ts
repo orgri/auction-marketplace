@@ -1,3 +1,5 @@
-import * as typeormConfig from './src/modules/database/type-orm.config';
+import { ConfigService } from './src/modules/config';
 
-module.exports = typeormConfig;
+const cfg = new ConfigService();
+
+export = { ...cfg.getTypeOrmConfig(), ...cfg.getSeedsConfig() };

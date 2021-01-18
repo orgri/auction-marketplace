@@ -1,6 +1,6 @@
 import { BullModule } from '@nestjs/bull';
 import { forwardRef, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '../config';
 import { LotModule } from '../lot/lot.module';
 import { MailModule } from '../mails/mail.module';
 import { QueueName } from './job-types';
@@ -12,12 +12,7 @@ import { QueueService } from './queue.service';
     BullModule.registerQueueAsync({
       name: QueueName.statesFlow,
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        redis: {
-          host: configService.get('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-        },
-      }),
+      useFactory: async (cfg: ConfigService) => cfg.getRedisConfig(),
       inject: [ConfigService],
     }),
     forwardRef(() => LotModule),
