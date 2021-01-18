@@ -8,8 +8,8 @@ import { MailService } from '../mails/mail.service';
 import { JobAction, QueueName } from './job-types';
 
 @Processor(QueueName.statesFlow)
-export class AuctionFlowConsumer {
-  private readonly logger = new Logger(AuctionFlowConsumer.name);
+export class QueueConsumer {
+  private readonly logger = new Logger(QueueConsumer.name);
 
   constructor(
     private readonly lotService: LotService,

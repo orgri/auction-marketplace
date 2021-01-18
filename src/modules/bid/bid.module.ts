@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Bid } from '../../db/models';
 import { LotModule } from '../lot/lot.module';
@@ -10,8 +10,8 @@ import { BidService } from './bid.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Bid]),
-    forwardRef(() => LotModule),
-    forwardRef(() => QueueModule),
+    LotModule,
+    QueueModule,
     WebsocketsModule,
   ],
   controllers: [BidController],
