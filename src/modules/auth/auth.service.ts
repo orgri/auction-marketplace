@@ -69,7 +69,7 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(payload: ForgotPasswordDto): Promise<any> {
+  async forgotPassword(payload: ForgotPasswordDto): Promise<unknown> {
     const { email } = payload;
 
     const user = await this.userService.getByEmail(email);

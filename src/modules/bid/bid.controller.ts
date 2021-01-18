@@ -29,7 +29,7 @@ export class BidController {
     return this.bidService.createOne(user.id, lotId, body);
   }
 
-  @Get('')
+  @Get()
   async getAllBids(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,

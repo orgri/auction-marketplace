@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { UserService } from '../user/user.service';
+import { ConfigService } from '../config';
 
 export const JWT_STRATEGY_JWT = 'jwt';
 export const JWT_STRATEGY_REFRESH = 'jwt-refresh';
@@ -11,9 +12,11 @@ export interface IJwtPayload {
   id: number;
 }
 
+const { secret: secretOrKey } = ConfigService.instance.getJwtConfig();
+
 const getStrategyConstructorArgs = () => ({
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.AUTH_JWT_SECRET,
+  secretOrKey,
   ignoreExpiration: false,
 });
 

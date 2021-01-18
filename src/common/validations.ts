@@ -11,8 +11,5 @@ export const isFirstDateLater = (
   firstDate: Date | string,
   secondDate: Date | string,
 ): boolean => {
-  const first = new Date(firstDate);
-  const second = new Date(secondDate);
-
-  return first > second;
+  return new Date(firstDate) > new Date(secondDate);
 };

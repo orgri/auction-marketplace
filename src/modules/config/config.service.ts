@@ -7,6 +7,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { MailerOptions } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { BullModuleOptions } from '@nestjs/bull';
+import { JwtModuleOptions } from '@nestjs/jwt';
 
 export interface IEnvConfig {
   [key: string]: string;
@@ -20,10 +21,13 @@ const templatesDir = path.resolve(__dirname, 'templates');
 
 @Injectable()
 export class ConfigService {
+  private static serviceInstance: ConfigService;
   private readonly logger = new Logger(ConfigService.name);
   private readonly envConfig: IEnvConfig;
 
   constructor(filePath?: string) {
+    ConfigService.serviceInstance = this;
+
     if (!fs.existsSync(filePath)) filePath = '.env';
 
     const config = dotenv.parse(fs.readFileSync(filePath));
@@ -32,6 +36,14 @@ export class ConfigService {
     this.logger.log(
       `Configuration file "${filePath}" has been read successfully`,
     );
+  }
+
+  public static get instance() {
+    return ConfigService.serviceInstance;
+  }
+
+  public getPort(): number {
+    return this.getInt('PORT');
   }
 
   public getTypeOrmConfig(): TypeOrmModuleOptions {
@@ -57,6 +69,15 @@ export class ConfigService {
     return {
       seeds: [`${dbDir}/seeds/**/*.seed{.ts,.js}`],
       factories: [`${dbDir}/factories/**/*{.ts,.js}`],
+    };
+  }
+
+  public getJwtConfig(): JwtModuleOptions {
+    return <JwtModuleOptions>{
+      secret: this.getString('AUTH_JWT_SECRET'),
+      signOptions: {
+        expiresIn: this.getString('AUTH_JWT_EXPIRES_IN'),
+      },
     };
   }
 

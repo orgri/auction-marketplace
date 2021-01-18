@@ -26,7 +26,7 @@ import { OrderService } from './order.service';
 @UseGuards(JwtAuthGuard)
 @Controller('/lots/:id/order')
 export class OrderController {
-  constructor(private orderService: OrderService) {}
+  constructor(private readonly orderService: OrderService) {}
 
   @Post('create')
   async createOrder(

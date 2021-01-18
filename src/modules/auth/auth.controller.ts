@@ -2,10 +2,8 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
-  Get,
   HttpCode,
   Post,
-  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -27,29 +25,27 @@ export class AuthController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('signup')
-  async signup(@Body() payload: UserCreateDto): Promise<UserDto> {
-    return this.authService.signup(payload).then((user) => new UserDto(user));
+  async signup(@Body() body: UserCreateDto): Promise<UserDto> {
+    return new UserDto(await this.authService.signup(body));
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('login')
   @HttpCode(200)
-  async login(@Body() payload: AuthPayloadDto): Promise<AuthResponseDto> {
-    return this.authService
-      .login(payload)
-      .then((user) => new AuthResponseDto(user));
+  async login(@Body() body: AuthPayloadDto): Promise<AuthResponseDto> {
+    return new AuthResponseDto(await this.authService.login(body));
   }
 
   @Post('forgot-password')
   @HttpCode(200)
-  async forgotPassword(@Body() user: ForgotPasswordDto): Promise<any> {
+  async forgotPassword(@Body() user: ForgotPasswordDto): Promise<unknown> {
     return this.authService.forgotPassword(user);
   }
 
-  @Get('change-password')
-  async verifyChange(@Query('token') token: string): Promise<any> {
-    return this.authService.verifyToken(token);
-  }
+  // @Get('change-password')
+  // async verifyChange(@Query('token') token: string): Promise<any> {
+  //   return this.authService.verifyToken(token);
+  // }
 
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
@@ -57,10 +53,10 @@ export class AuthController {
   @HttpCode(200)
   async changePassword(
     @GetUser() user: User,
-    @Body() payload: ChangePasswordDto,
+    @Body() body: ChangePasswordDto,
   ): Promise<AuthResponseDto> {
-    return this.authService
-      .changePassword(user.email, payload)
-      .then((user) => new AuthResponseDto(user));
+    return new AuthResponseDto(
+      await this.authService.changePassword(user.email, body),
+    );
   }
 }

@@ -1,7 +1,15 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class ValidationException extends HttpException {
   constructor(message: any[], object?: any) {
-    super({ statusCode: 422, message, error: 'Validation Error', object }, 422);
+    super(
+      {
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        message,
+        error: 'Validation Error',
+        object,
+      },
+      HttpStatus.UNPROCESSABLE_ENTITY,
+    );
   }
 }
